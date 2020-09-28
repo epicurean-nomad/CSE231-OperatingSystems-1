@@ -1,0 +1,8 @@
+Yes, we can have multiple entry points for the same program. In such a scenario, we have to explicitly define the entry point for our executable file with -e flag.
+
+Since, checkGreater is a global subroutine, it could be called from main. We have explicity declared checkGreater function as extern in the q1c.c file. Thus, it leaves it to the linker to resolve it's refernce while linking.
+
+To explicitly specify the entry point of the program while linknig we use the following command: 		
+	ld -e main -o q1 q1c.o q1.o
+	
+Here, main is our entry point.

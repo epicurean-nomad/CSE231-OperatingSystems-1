@@ -1,0 +1,9 @@
+In x86-32 bit programs, the convention is to always pass all the arguments through stack.
+
+In x86-64, the first 6 arguments are passed through CPU registers for fast working. The rest of the arguments are passed through stack.
+
+Thus, we have to make suitable change accordingly.
+
+Also, in 32 bit systems, we have to use 32 bit registers of the CPU. Thus, we use ebp, esp. We have to convert it to 64 bit registers, namely rbp, rsp in 64 bit mode.
+
+To compile the program in 32 bit mode, we have to pass -m32 flag for GCC, and -f elf32 for NASM.

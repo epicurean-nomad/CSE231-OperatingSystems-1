@@ -1,0 +1,3 @@
+When we have to store something in the RAM, we can simply declare a variable and initialize it. In P6_1.c, we are storing a string in the stack (which is present on the RAM).
+
+In P6_2.c, we are using the data file handling functions in C, to create a file 'output.txt' (overwrites if already present) and write a string to it using fprintf function. We finally close the file and exit the program.

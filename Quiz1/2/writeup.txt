@@ -1,0 +1,27 @@
+/* Compiler Warnings -->
+main.c:1:1: warning: return type defaults to ‘int’ [-Wimplicit-int]
+    1 | add (float a, float b)
+      | ^~~
+main.c: In function ‘add’:
+main.c:3:17: warning: implicit declaration of function ‘round’ [-Wimplicit-function-declaration]
+    3 |  return (float)(round(a)+round(b));
+      |                 ^~~~~
+main.c:3:17: warning: incompatible implicit declaration of built-in function ‘round’
+main.c:1:1: note: include ‘<math.h>’ or provide a declaration of ‘round’
+  +++ |+#include <math.h>
+    1 | add (float a, float b)
+*/
+
+When we try to compile the code, above mentioned warnings are printed. The compiling is successfull.
+
+First of all, in the function add, we have not mentioned any return type. The compiler by default assumes int return type, and shows warning while doing so.
+
+The C90 Standard [ISO/IEC 9899:1990] includes this requirement:
+
+	If the expression that precedes the parenthesized argument list in a function call consists solely of an identifier, and if no declaration is visible for this identifier, the identifier is implicitly declared exactly as if, in the innermost block containing the function call, the declaration extern int identifier(); appeared.
+    
+	So basically, here the compiler is assuming the prototype of the round function to be 'extern int round()' which indicates unknown number of parameters. It leaves it to the linker to resolve all these references while linking.
+
+	Now the compiler is warning us that 'round' is also an inbuilt function, and thus the implicit function declaration of round is incompatible with that inbuilt function. Also, it gives us a note, saying that if we want to use the inbuilt 'round' function, we have to include the math library ("math.h").
+	
+	There's another problem which will occur here. The implicit return type of add function here is int, but we are retuning int from the function. This will result in unexpected behavior.

@@ -1,0 +1,7 @@
+The name of any array is a pointer which points to the address of the first element of the array. Here, we have a char array. Thus, the name of the array is a const char* pointer. We can explicity typecast this pointer to any other required type.
+
+In 'main32.c' we typecast the array pointer to a int* pointer variable. Integers are 4 bytes (32 bits) long. Adding 1 to a int* pointer varible shifts it 4 bytes forward. Now we run a loop to store write 16 in each of these 4 bytes chunk. 
+We print the array in a loop using the same int* pointer.
+
+In 'main64.c' we typecast the array pointer to a long* pointer varibale. 'long*' reads/writes 8 bytes (64 bits) at a time. Adding 1 to a int* pointer varible shifts it 8 bytes forward. We run a loop and write 64 in each of these 64 bits of memory.
+Using a loop, now we now print the array.

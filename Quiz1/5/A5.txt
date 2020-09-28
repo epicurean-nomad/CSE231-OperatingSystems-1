@@ -1,0 +1,8 @@
+We'll prefer to use 16 bit mode (real mode). Even in real mode, we can easily access upto 1MB RAM, by left shifting the address and adding the offset to get a 20 bit address.
+By this method, we can easily access 320KB of RAM. 
+
+The advantage of long mode is that it has support for faster device drivers, virtual memory, paging, etc.
+
+Here, we are planning to use it on a embedded system. Assuming it won't requrie these functionalities, we will prefer to use real mode for running our programs.
+
+However, this has limitation, because we won't be able to run 32 bit, or 64 bit programs on our system.
