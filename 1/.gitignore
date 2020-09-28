@@ -1,0 +1,10 @@
+.vscode
+**/*.o
+**/*.i
+**/*.s
+**/main
+1.2/date
+1.2/cat
+1.2/mkdir
+1.2/rm
+1.2/ls
