@@ -9,4 +9,4 @@ default:
 
 
 clean: 
-	rm rm ls date mkdir cat history.bin
+	rm rm ls date mkdir cat history.bin main

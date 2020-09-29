@@ -14,10 +14,9 @@ int main(int argc, char *argv[]) {
     
     if (d) {
         while ((dir = readdir(d)) != NULL) {
-            printf("%s\t", dir->d_name);
+            printf("%s\n", dir->d_name);
         }
         closedir(d);
-        printf("\n");
     }
     return 0;
 }

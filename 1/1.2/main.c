@@ -6,6 +6,8 @@
 #include <sys/wait.h>
 #include <pwd.h>
 
+#define filename_length 4
+
 //==========Global Variables=============
 
 //For Storing Path to Current Working Directory
@@ -22,19 +24,24 @@ char temp[100];
 
 //=======Start of Inbuild commands======
 
-void pwd(char *args) {
+void pwd(char *args[]) {
     printf("%s\n", path);
 }
 
-void cd(char *args) {
+void cd(char *args[]) {
     char newpath[100];
-    if(args[0] != '/') {
-        strcpy(newpath, path);
-        strcat(newpath, "/");
-        strcat(newpath, args);
+    if(args[1][0] == '/') {
+        strcpy(newpath, args[1]);
+    }
+    else if(args[1][0] == '~' ) {
+        strcpy(newpath, "/home/");
+        strcat(newpath, getpwuid(getuid())->pw_name);
+        strcat(newpath, args[1]+1);
     }
     else {
-        strcpy(newpath, args);
+        strcpy(newpath, path);
+        strcat(newpath, "/");
+        strcat(newpath, args[1]);
     }
 
     //For debugging
@@ -44,7 +51,7 @@ void cd(char *args) {
     getcwd(path, 100);
 }
 
-void history(char *args) {
+void history(char *args[]) {
     FILE *fptr;
     strcpy(temp, file_path);
     strcat(temp, "/history.bin");
@@ -59,19 +66,19 @@ void history(char *args) {
     fclose(fptr);
 }
 
-void exit_(char *args) {
+void exit_(char *args[]) {
     exit(0);
 }
 
-void echo(char *args) {
-    printf("%s\n", args);
+void echo(char *args[]) {
+    printf("%s\n", args[1]);
 }
 
 //=======End of Inbuild Commands=======
 
 //=============External Commands=======
 
-void ls(char *args) {
+void ls(char *args[]) {
     pid_t id;
     id = fork();
 
@@ -83,10 +90,7 @@ void ls(char *args) {
         strcpy(temp, file_path);
         strcat(temp, "/ls");
         
-        if(!strcmp(args, ""))
-            execl(temp, "ls", (char *)NULL);
-        else
-            execl(temp, "ls", args, (char *)NULL);
+        execv(temp, args);
 
         // Only in case of error
         exit(0);
@@ -97,7 +101,7 @@ void ls(char *args) {
     }
 }
 
-void date(char *args) {
+void date(char *args[]) {
     pid_t id;
     id = fork();
 
@@ -109,10 +113,7 @@ void date(char *args) {
         strcpy(temp, file_path);
         strcat(temp, "/date");
         
-        if(!strcmp(args, ""))
-            execl(temp, "date", (char *)NULL);
-        else
-            execl(temp, "date", args, (char *)NULL);
+        execv(temp, args);
 
         // Only in case of error
         exit(0);
@@ -123,7 +124,7 @@ void date(char *args) {
     }
 }
 
-void cat(char *args) {
+void cat(char *args[]) {
     pid_t id;
     id = fork();
 
@@ -135,10 +136,7 @@ void cat(char *args) {
         strcpy(temp, file_path);
         strcat(temp, "/cat");
         
-        if(!strcmp(args, ""))
-            execl(temp, "cat", (char *)NULL);
-        else
-            execl(temp, "cat", args, (char *)NULL);
+        execv(temp, args);
 
         // Only in case of error
         exit(0);
@@ -149,7 +147,7 @@ void cat(char *args) {
     }
 }
 
-void rm(char *args) {
+void rm(char *args[]) {
     pid_t id;
     id = fork();
 
@@ -161,10 +159,7 @@ void rm(char *args) {
         strcpy(temp, file_path);
         strcat(temp, "/rm");
         
-        if(!strcmp(args, ""))
-            execl(temp, "rm", (char *)NULL);
-        else
-            execl(temp, "rm", args, (char *)NULL);
+        execv(temp, args);
 
         // Only in case of error
         exit(0);
@@ -175,7 +170,7 @@ void rm(char *args) {
     }
 }
 
-void mkdir(char *args) {
+void mkdir(char *args[]) {
     pid_t id;
     id = fork();
 
@@ -187,10 +182,7 @@ void mkdir(char *args) {
         strcpy(temp, file_path);
         strcat(temp, "/mkdir");
         
-        if(!strcmp(args, ""))
-            execl(temp, "mkdir", (char *)NULL);
-        else
-            execl(temp, "mkdir", args, (char *)NULL);
+        execv(temp, args);
 
         // Only in case of error
         exit(0);
@@ -223,6 +215,33 @@ void display_line() {
     printf("$ ");
 }
 
+char** parse_args(char *str) {
+    int len = strlen(str);
+    if(len == 0)
+        return NULL;
+
+    //Count the number of arguments
+    int count = 1;
+    for(int i=0; i<len; ++i) {
+        if(str[i] == ' ') {
+            if(i+1<len && str[i+1]!=' ') {
+                count++;
+            }
+            str[i] = '\0';
+        }
+    }
+
+    char **arr = malloc(count*sizeof(char *));
+    arr[0] = str;
+    for(int i=1, k=1; i<len; ++i) {
+        if(str[i] == '\0' && i+1<len && str[i+1] != '\0'){
+            arr[k] = str+(i+1);
+            k++;
+        }
+    }
+    return arr;
+}
+
 void add_history(char *args) {
     FILE *h_file;
     strcpy(temp, file_path);
@@ -247,6 +266,8 @@ void setup() {
 
 int main(int argc, char *argv[]) {
     setup();
+    strcat(file_path, argv[0]+1);
+    file_path[strlen(file_path)-filename_length-1] = '\0';
 
     while(1) {
         char line[100];
@@ -255,44 +276,43 @@ int main(int argc, char *argv[]) {
         display_line();
         scanf("%255[^\n]%*c", line);
         add_history(line);
-        strcpy(temp, line);
 
-        char *ptr = strtok(temp, " ");
-        int offset = strlen(ptr);
-        char *args = line+offset+1;
+        char **args = parse_args(line);
 
         // For Debugging
         // printf("Args: %s\n", args);
 
-        if(strcmp(ptr, "cd")==0) {
+        if(strcmp(args[0], "cd")==0) {
             cd(args);
         }
-        else if(!strcmp(ptr, "pwd")) {
+        else if(!strcmp(args[0], "pwd")) {
             pwd(args);
         }
-        else if(!strcmp(ptr, "exit")) {
+        else if(!strcmp(args[0], "exit")) {
             exit_(args);
         }
-        else if(!strcmp(ptr, "history")) {
+        else if(!strcmp(args[0], "history")) {
             history(args);
         }
-        else if(!strcmp(ptr, "echo")) {
+        else if(!strcmp(args[0], "echo")) {
             echo(args);
         }
-        else if(!strcmp(ptr, "ls")) {
+        else if(!strcmp(args[0], "ls")) {
             ls(args);
         }
-        else if(!strcmp(ptr, "mkdir")) {
+        else if(!strcmp(args[0], "mkdir")) {
             mkdir(args);
         }
-        else if(!strcmp(ptr, "cat")) {
+        else if(!strcmp(args[0], "cat")) {
             cat(args);
         }
-        else if(!strcmp(ptr, "rm")) {
+        else if(!strcmp(args[0], "rm")) {
             rm(args);
         }
-        else if(!strcmp(ptr, "date")) {
+        else if(!strcmp(args[0], "date")) {
             date(args);
         }
+
+        free(args);
     }
 }
