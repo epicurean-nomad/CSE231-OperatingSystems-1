@@ -1,5 +1,4 @@
 default:
-	$(MAKE) --no-print-directory clean
 	mkdir build
 	gcc -E main.c -o build/main.i
 	gcc -S build/main.i -o build/main.s

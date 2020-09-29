@@ -84,6 +84,11 @@ void external_command(char *args[]) {
     pid_t id;
     id = fork();
 
+    // For debugging purpose only
+    // for(int i=0; i<2; ++i) 
+    //     printf("%s\t", args[i]);
+    // printf("\n");
+
     if(id < 0) {
         printf("Fork failed! Aborting...\n");
         return;
@@ -133,12 +138,43 @@ char** parse_args(char *str) {
 
     //Count the number of arguments
     int count = 1;
+    int special = 0;
     for(int i=0; i<len; ++i) {
+        if(special) {
+            if(str[i] == '"') {
+                str[i] = '\0';
+                special = 0;
+            }
+
+            continue;
+        }
+
         if(str[i] == ' ') {
+            str[i] = '\0';
             if(i+1<len && str[i+1]!=' ') {
+                if(str[i+1] =='"') {
+                    special = 1;
+                    str[i] = '\0';
+                    str[i+1] = '\0';
+                }
+                else if(str[i+1] == '+' && !strcmp(str, "date")) {
+                    str[i] = '\0';
+                    if(str[i+2] == 34){
+                        str[i+1] = '\0';
+                        str[i+2] = '+';
+
+                        for(int j=i+2; j<len; ++j) {
+                            if(str[j] == 34){
+                                str[j] = '\0';
+                                break;
+                            }
+                        }
+                    }
+                    count++;
+                    break;
+                }
                 count++;
             }
-            str[i] = '\0';
         }
     }
 
@@ -147,6 +183,8 @@ char** parse_args(char *str) {
     for(int i=1, k=1; i<len; ++i) {
         if(str[i] == '\0' && i+1<len && str[i+1] != '\0'){
             arr[k] = str+(i+1);
+            // For debugging
+            // printf("new: %s\n", arr[k]);
             k++;
         }
     }
