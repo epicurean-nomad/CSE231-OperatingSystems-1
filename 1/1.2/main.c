@@ -6,6 +6,8 @@
 #include <sys/wait.h>
 #include <pwd.h>
 
+// Set this to the length of the executable file name 
+// of the final program
 #define filename_length 4
 
 //==========Global Variables=============

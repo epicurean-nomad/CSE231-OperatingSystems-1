@@ -1,4 +1,5 @@
 default:
+	$(MAKE) --no-print-directory clean
 	mkdir build
 	gcc ls.c -o build/ls
 	gcc date.c -o build/date
