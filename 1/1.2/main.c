@@ -89,7 +89,7 @@ void ls(char *args[]) {
     else if(id == 0) {
         strcpy(temp, file_path);
         strcat(temp, "/ls");
-        
+
         execv(temp, args);
 
         // Only in case of error

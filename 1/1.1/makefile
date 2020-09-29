@@ -1,8 +1,9 @@
 default:
-	gcc -E main.c -o main.i
-	gcc -S main.i
-	gcc -c main.s
-	gcc -o main main.o
+	mkdir build
+	gcc -E main.c -o build/main.i
+	gcc -S build/main.i -o build/main.s
+	gcc -c build/main.s -o build/main.o
+	gcc -o build/main build/main.o
 
 make clean:
-	rm main main.o main.s main.i
+	rm -r build

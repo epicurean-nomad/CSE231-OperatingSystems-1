@@ -1,12 +1,13 @@
 default:
-	gcc ls.c -o ls
-	gcc date.c -o date
-	gcc mkdir.c -o mkdir
-	gcc cat.c -o cat
-	gcc rm.c -o rm
+	mkdir build
+	gcc ls.c -o build/ls
+	gcc date.c -o build/date
+	gcc mkdir.c -o build/mkdir
+	gcc cat.c -o build/cat
+	gcc rm.c -o build/rm
 
-	gcc main.c -o main
+	gcc main.c -o build/main
 
 
 clean: 
-	rm rm ls date mkdir cat history.bin main
+	rm -r build
