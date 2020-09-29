@@ -78,7 +78,7 @@ void echo(char *args[]) {
 
 //=============External Commands=======
 
-void ls(char *args[]) {
+void external_command(char *args[]) {
     pid_t id;
     id = fork();
 
@@ -88,100 +88,9 @@ void ls(char *args[]) {
     }
     else if(id == 0) {
         strcpy(temp, file_path);
-        strcat(temp, "/ls");
+        strcat(temp, "/");
+        strcat(temp, args[0]);
 
-        execv(temp, args);
-
-        // Only in case of error
-        exit(0);
-    }
-    else {
-        wait(NULL);
-        return;
-    }
-}
-
-void date(char *args[]) {
-    pid_t id;
-    id = fork();
-
-    if(id < 0) {
-        printf("Fork failed! Aborting...\n");
-        return;
-    }
-    else if(id == 0) {
-        strcpy(temp, file_path);
-        strcat(temp, "/date");
-        
-        execv(temp, args);
-
-        // Only in case of error
-        exit(0);
-    }
-    else {
-        wait(NULL);
-        return;
-    }
-}
-
-void cat(char *args[]) {
-    pid_t id;
-    id = fork();
-
-    if(id < 0) {
-        printf("Fork failed! Aborting...\n");
-        return;
-    }
-    else if(id == 0) {
-        strcpy(temp, file_path);
-        strcat(temp, "/cat");
-        
-        execv(temp, args);
-
-        // Only in case of error
-        exit(0);
-    }
-    else {
-        wait(NULL);
-        return;
-    }
-}
-
-void rm(char *args[]) {
-    pid_t id;
-    id = fork();
-
-    if(id < 0) {
-        printf("Fork failed! Aborting...\n");
-        return;
-    }
-    else if(id == 0) {
-        strcpy(temp, file_path);
-        strcat(temp, "/rm");
-        
-        execv(temp, args);
-
-        // Only in case of error
-        exit(0);
-    }
-    else {
-        wait(NULL);
-        return;
-    }
-}
-
-void mkdir(char *args[]) {
-    pid_t id;
-    id = fork();
-
-    if(id < 0) {
-        printf("Fork failed! Aborting...\n");
-        return;
-    }
-    else if(id == 0) {
-        strcpy(temp, file_path);
-        strcat(temp, "/mkdir");
-        
         execv(temp, args);
 
         // Only in case of error
@@ -298,19 +207,19 @@ int main(int argc, char *argv[]) {
             echo(args);
         }
         else if(!strcmp(args[0], "ls")) {
-            ls(args);
+            external_command(args);
         }
         else if(!strcmp(args[0], "mkdir")) {
-            mkdir(args);
+            external_command(args);
         }
         else if(!strcmp(args[0], "cat")) {
-            cat(args);
+            external_command(args);
         }
         else if(!strcmp(args[0], "rm")) {
-            rm(args);
+            external_command(args);
         }
         else if(!strcmp(args[0], "date")) {
-            date(args);
+            external_command(args);
         }
 
         free(args);
