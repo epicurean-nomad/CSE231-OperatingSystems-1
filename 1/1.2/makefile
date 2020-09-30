@@ -11,3 +11,8 @@ default:
 
 clean: 
 	rm -r build
+
+
+rebuild:
+	$(MAKE) --no-print-directory clean
+	$(MAKE) --no-print-directory default

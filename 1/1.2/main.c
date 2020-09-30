@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <pwd.h>
+#include <errno.h>
 
 // Set this to the length of the executable file name 
 // of the final program
@@ -97,10 +98,13 @@ void external_command(char *args[]) {
         strcpy(temp, file_path);
         strcat(temp, "/");
         strcat(temp, args[0]);
-
-        execv(temp, args);
+        
+        // For debugging
+        // printf("location: %s\n", temp);
+        execvp(temp, args);
 
         // Only in case of error
+        printf("Error while doing execv : %s\n", strerror(errno));
         exit(0);
     }
     else {
@@ -178,8 +182,9 @@ char** parse_args(char *str) {
         }
     }
 
-    char **arr = malloc(count*sizeof(char *));
+    char **arr = malloc((count+1)*sizeof(char *));
     arr[0] = str;
+    arr[len] = (char *) NULL;
     for(int i=1, k=1; i<len; ++i) {
         if(str[i] == '\0' && i+1<len && str[i+1] != '\0'){
             arr[k] = str+(i+1);
