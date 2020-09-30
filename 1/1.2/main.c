@@ -28,7 +28,21 @@ char temp[100];
 //=======Start of Inbuild commands======
 
 void pwd(char *args[]) {
-    printf("%s\n", path);
+    if(args[1] == NULL || !strcmp(args[1], "-L") || !strcmp(args[1], "--logical"))
+        printf("%s\n", path);
+    else if(!strcmp(args[1], "-P") || !strcmp(args[1], "--physical")) {
+        char resolved[100];
+        int err = realpath(path, resolved);
+        if(err) {
+            printf("pwd: error resolving symlinks: '%s'\n", strerror(errno));
+            return;
+        }
+        printf("%s\n", resolved);
+    }
+    else {
+        fprintf(stderr, "pwd: invalid option\n");
+        return;
+    }
 }
 
 void cd(char *args[]) {
