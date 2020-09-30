@@ -74,7 +74,83 @@ void exit_(char *args[]) {
 }
 
 void echo(char *args[]) {
-    printf("%s\n", args[1]);
+    // Mode for trailing newline
+    // 0 - Don't print
+    // 1 - print
+    int trailing_newline = 1;
+
+    //Mode for backslash excapes
+    // 0 - Disable
+    // 1 - Enable
+    int b_escapes = 0;
+
+    int flag = 1;
+    while(args[flag] != NULL && args[flag][0] == '-') {
+        if(!strcmp(args[flag], "-n"))
+            trailing_newline = 0;
+        else if(!strcmp(args[flag], "-e"))
+            b_escapes = 1;
+        else if(!strcmp(args[flag], "-E"))
+            b_escapes = 0;
+        flag++;
+    }
+
+    while(args[flag] != NULL) {
+        char *str = args[flag];
+
+        for(int i=0; i<strlen(str); ++i) {
+            char ch = str[i];
+            if(ch == '\\' && b_escapes) {
+                int done = 0;
+                switch(str[i+1]) {
+                    case 'n':
+                        ch = '\n';
+                        break;
+                    case 't':
+                        ch = '\t';
+                        break;
+                    case 'v':
+                        ch = '\v';
+                        break;
+                    case 'b':
+                        ch = '\b';
+                        break;
+                    case 'r':
+                        ch = '\r';
+                        break;
+                    case 'f':
+                        ch = '\f';
+                        break;
+                    case 'a':
+                        ch = '\a';
+                        break;
+                    case '\\':
+                        ch = '\\';
+                        break;
+                    case '?':
+                        ch = '\?';
+                        break;
+                    case '\'':
+                        ch = '\'';
+                        break;
+                    case '\"':
+                        ch = '\"';
+                        break;
+                    default:
+                        printf("\\%c", str[i+1]);
+                        done = 1;
+                }
+
+                i++;
+            }
+            printf("%c", ch);
+        }
+        
+        flag++;
+    }
+
+    if(trailing_newline)
+        printf("\n");
 }
 
 //=======End of Inbuild Commands=======
