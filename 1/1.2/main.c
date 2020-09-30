@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <pwd.h>
 #include <errno.h>
 
@@ -34,19 +35,30 @@ void pwd(char *args[]) {
         char resolved[100];
         memset(resolved, 0, 100);
         realpath(path, resolved);
-        if(resolved[100] != '\0') {
+        if(resolved[99] != '\0') {
             printf("pwd: buffer overflow: address too long\n");
             return;
         }
-        // if(err) {
-        //     printf("pwd: error resolving symlinks: '%s'\n", strerror(errno));
-        //     return;
-        // }
         printf("%s\n", resolved);
     }
     else {
         fprintf(stderr, "pwd: invalid option\n");
         return;
+    }
+}
+
+int contains_symlink = 0;
+int is_symlink(const char *filename){
+    struct stat p_statbuf;
+
+    if (lstat(filename, &p_statbuf) < 0) {
+        return -1;
+    }
+
+    if (S_ISLNK(p_statbuf.st_mode) == 1) {
+        return 1;
+    } else {
+        return 0;
     }
 }
 
@@ -59,7 +71,7 @@ void cd(char *args[]) {
     char *dir = args[1];
     if(dir[0] == '-')
         dir = args[2];
-
+    
     char newpath[100];
     if(dir[0] == '/') {
         strcpy(newpath, dir);
@@ -68,12 +80,16 @@ void cd(char *args[]) {
         strcpy(newpath, "/home/");
         strcat(newpath, getpwuid(getuid())->pw_name);
         strcat(newpath, args[1]+1);
+        contains_symlink = 0;
     }
     else {
         strcpy(newpath, path);
         strcat(newpath, "/");
         strcat(newpath, dir);
     }
+
+    if(is_symlink(dir) == 1)
+        contains_symlink = 1;
 
     //For debugging
     // printf("Go here : %s\n", newpath);
@@ -90,11 +106,18 @@ void cd(char *args[]) {
         }
         else if(!strcmp(args[1], "-L") || !strcmp(args[1], "---logical")) {
             strcpy(path, newpath);
+            return;
+        }
+        else {
+            fprintf(stderr, "cd: invalid option\n");
+            return;
         }
         return;
     }
-
+    
     strcpy(path, newpath);
+    if(!contains_symlink)
+        getcwd(path, 100);
 }
 
 void history(char *args[]) {
@@ -161,6 +184,12 @@ void history(char *args[]) {
 }
 
 void exit_(char *args[]) {
+    if(args[1] != NULL) {
+        if(!strcmp(args[1], "--help")) {
+            printf("exit: exit [n]\n    Exit the shell.\n\n    Exits the shell with a status of N.  If N is omitted, the exit status\n    is that of the last command executed.");
+        }
+        exit(atoi(args[1]));
+    }
     exit(0);
 }
 
@@ -183,6 +212,10 @@ void echo(char *args[]) {
             b_escapes = 1;
         else if(!strcmp(args[flag], "-E"))
             b_escapes = 0;
+        else {
+            fprintf(stderr, "echo: invalid option\n");
+            return;
+        }
         flag++;
     }
 

@@ -53,6 +53,10 @@ int main(int argc, char *argv[]) {
         else if(!strcmp(argv[1], "-R")) {
             format = "%a, %d %b %Y %H:%M:%S %z";
         }
+        else {
+            fprintf(stderr, "date: invalid option\n");
+            return 1;
+        }
         
     }
     display(format, tmp);

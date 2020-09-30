@@ -108,7 +108,7 @@ int main() {
         int fd  = open("csv-os.csv", O_RDONLY);
         if(fd == -1) {
             fprintf(stderr, "Error opening file!\n");
-            return;
+            exit(0);
         }
 
         char str[100];

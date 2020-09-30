@@ -21,6 +21,10 @@ int main(int argc, char *argv[]) {
         else if(!strcmp(argv[flag], "-v")) {
             verbose = 1;
         }
+        else {
+            fprintf(stderr, "mkdir: invalid option\n");
+            return 1;
+        }
 
         flag++;
     }
