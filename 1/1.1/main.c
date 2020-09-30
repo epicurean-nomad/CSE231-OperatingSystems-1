@@ -3,8 +3,10 @@
 #include <syscall.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <sys/wait.h>
-
+#include <errno.h>
 #include <string.h>
 
 void printSize(char *str, int size) {
@@ -34,16 +36,6 @@ struct student {
     int marks[4];
 };
 
-int parseInt(char *str) {
-    int len = strlen(str);
-    int ans = 0;
-    for(int i=0; i<len; i++) {
-        ans *= 10;
-        ans += (int)(str[i]-48);
-    }
-    return ans;
-}
-
 int parseStudent(char *str, struct student *s) {
     char *pch;
     pch = strtok(str, ",");
@@ -51,7 +43,7 @@ int parseStudent(char *str, struct student *s) {
     if(pch == NULL)
         return -1;
     
-    s->id = parseInt(pch);
+    s->id = atoi(pch);
     pch = strtok(NULL, ",");
 
     if(pch == NULL)
@@ -59,12 +51,14 @@ int parseStudent(char *str, struct student *s) {
 
     s->section = pch[0];
 
-    for(int i=0; i<4; ++i) {
-        pch = strtok(NULL, " ,");
+    for(int i=0; i<3; ++i) {
+        pch = strtok(NULL, ",");
         if(pch == NULL)
             return -1;
-        s->marks[i] = parseInt(pch);
+        s->marks[i] = atoi(pch);
     }
+    
+    s->marks[3] = atoi(pch+strlen(pch)+1);
     return 0;
 }
 
@@ -87,6 +81,20 @@ void printStudent(struct student *s) {
     print("\n");
 }
 
+int read_line_from_file(int fd, char *buff, int buffsize) {
+    memset(buff, 0, 100);
+    int i=0;
+    while(i<buffsize-1 && read (fd, &buff[i], 1) >= 0 && errno != EINTR) {
+        if(buff[i] == '\n') {
+            buff[i] = '\0';
+            return 1;
+        }
+        i++;
+        errno = 0;
+    }
+    return 0;
+}
+
 int main() {
     pid_t pid;
     pid = fork();
@@ -97,19 +105,24 @@ int main() {
     }
     else if(pid == 0) {
         //Child Process executes this
-        FILE *fptr  = fopen("csv-os.csv", "rb");
+        int fd  = open("csv-os.csv", O_RDONLY);
+        if(fd == -1) {
+            fprintf(stderr, "Error opening file!\n");
+            return;
+        }
+
         char str[100];
 
-        fscanf(fptr, "%255[^\n]%*c", str);
+        read_line_from_file(fd, str, 100);
         
-        while(fscanf(fptr, "%255[^\n]%*c", str) > 0) {
+        while(read_line_from_file(fd, str, 100) > 0) {
             struct student new_student;
             parseStudent(str, &new_student);
             if(new_student.section == 'A')
                 printStudent(&new_student);
         }
 
-        fclose(fptr);
+        close(fd);
         exit(0);
     }
     else {
@@ -117,20 +130,24 @@ int main() {
         waitpid(-1, NULL, 0);
         print("Child Complete!\n");
 
-        FILE *fptr  = fopen("csv-os.csv", "rb");
+        int fd  = open("csv-os.csv", O_RDONLY);
+        if(fd == -1) {
+            fprintf(stderr, "Error opening file!\n");
+            return;
+        }
+
         char str[100];
 
-        fscanf(fptr, "%255[^\n]%*c", str);
+        read_line_from_file(fd, str, 100);
         
-        while(fscanf(fptr, "%255[^\n]%*c", str) > 0) {
+        while(read_line_from_file(fd, str, 100) > 0) {
             struct student new_student;
             parseStudent(str, &new_student);
             if(new_student.section == 'B')
                 printStudent(&new_student);
         }
 
-        fclose(fptr);        
-        exit(0);
+        close(fd);
     }
     return 0;
 }

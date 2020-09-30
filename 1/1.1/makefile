@@ -5,5 +5,9 @@ default:
 	gcc -c build/main.s -o build/main.o
 	gcc -o build/main build/main.o
 
-make clean:
+clean:
 	rm -r build
+
+rebuild:
+	$(MAKE) --no-print-directory clean
+	$(MAKE) --no-print-directory default
