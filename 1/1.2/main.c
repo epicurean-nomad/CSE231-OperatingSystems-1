@@ -184,7 +184,7 @@ char** parse_args(char *str) {
 
     char **arr = malloc((count+1)*sizeof(char *));
     arr[0] = str;
-    arr[len] = (char *) NULL;
+    arr[count] = (char *) NULL;
     for(int i=1, k=1; i<len; ++i) {
         if(str[i] == '\0' && i+1<len && str[i+1] != '\0'){
             arr[k] = str+(i+1);

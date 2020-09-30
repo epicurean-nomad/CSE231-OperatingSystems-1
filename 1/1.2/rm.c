@@ -58,11 +58,6 @@ int remove_directory(const char *path) {
 }
 
 int main(int argc, char *argv[]) {
-    if(argc <= 1) {
-        printf("rm: missing operand\n");
-        return 1;
-    }
-
     // For Debugging Purpose only
     for(int i=0; i<argc; ++i) 
         printf("%s\t", argv[i]);
@@ -91,6 +86,11 @@ int main(int argc, char *argv[]) {
             return 1;
         }
         arg++;
+    }
+
+    if(arg == argc) {
+        printf("rm: missing operand\n");
+        return 1;
     }
 
     while(arg < argc) {
