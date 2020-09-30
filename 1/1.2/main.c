@@ -55,18 +55,66 @@ void cd(char *args[]) {
 }
 
 void history(char *args[]) {
-    FILE *fptr;
     strcpy(temp, file_path);
     strcat(temp, "/history.bin");
-    fptr = fopen(temp, "rb");
 
-    int counter = 1;
+    if(args[1] == NULL) {
+        FILE *fptr;
+        fptr = fopen(temp, "rb");
 
-    while(fscanf(fptr, "%255[^\n]%*c", temp) > 0) {
-        printf("%5d  %s\n", counter++, temp);
+        int counter = 1;
+
+        while(fscanf(fptr, "%255[^\n]%*c", temp) > 0) {
+            printf("%5d  %s\n", counter++, temp);
+        }
+
+        fclose(fptr);
+        return;
     }
+    
+    if(!strcmp(args[1], "-c")) {
+        truncate(temp, 0);
+    }
+    else if(!strcmp(args[1], "-d")) {
+        if(args[2] == NULL) {
+            fprintf(stderr, "history: -d: option requirement an argument\n");
+            return;
+        }
 
-    fclose(fptr);
+        int offset = atoi(args[2]);
+
+        FILE *fold, *fnew;
+        fold = fopen(temp, "rb");
+        char *newfile = malloc(strlen(temp+5));
+        strcpy(newfile, temp);
+        strcat(newfile, "t");
+        fnew = fopen(newfile, "wb");
+
+        int counter = 1;
+        char buff[100];
+
+        while(fscanf(fold, "%255[^\n]%*c", buff) > 0) {
+            if(counter++ == offset)
+                continue;
+            fprintf(fnew, "%s\n", buff);
+        }
+
+        if(counter < offset) {
+            fprintf(stderr, "history: %d: history position out of range\n", offset);
+        }
+
+        fclose(fold);
+        fclose(fnew);
+        remove(temp);
+        rename(newfile, temp);
+        free(newfile);
+        return;
+
+    }
+    else {
+        fprintf(stderr, "history: invalid option\n");
+        return;
+    }
 }
 
 void exit_(char *args[]) {
