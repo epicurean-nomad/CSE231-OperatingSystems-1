@@ -32,11 +32,16 @@ void pwd(char *args[]) {
         printf("%s\n", path);
     else if(!strcmp(args[1], "-P") || !strcmp(args[1], "--physical")) {
         char resolved[100];
-        int err = realpath(path, resolved);
-        if(err) {
-            printf("pwd: error resolving symlinks: '%s'\n", strerror(errno));
+        memset(resolved, 0, 100);
+        realpath(path, resolved);
+        if(resolved[100] != '\0') {
+            printf("pwd: buffer overflow: address too long\n");
             return;
         }
+        // if(err) {
+        //     printf("pwd: error resolving symlinks: '%s'\n", strerror(errno));
+        //     return;
+        // }
         printf("%s\n", resolved);
     }
     else {
@@ -46,11 +51,20 @@ void pwd(char *args[]) {
 }
 
 void cd(char *args[]) {
-    char newpath[100];
-    if(args[1][0] == '/') {
-        strcpy(newpath, args[1]);
+    if(args[1] == NULL) {
+        fprintf(stderr, "cd: missing argument\n");
+        return;
     }
-    else if(args[1][0] == '~' ) {
+
+    char *dir = args[1];
+    if(dir[0] == '-')
+        dir = args[2];
+
+    char newpath[100];
+    if(dir[0] == '/') {
+        strcpy(newpath, dir);
+    }
+    else if(dir[0] == '~' ) {
         strcpy(newpath, "/home/");
         strcat(newpath, getpwuid(getuid())->pw_name);
         strcat(newpath, args[1]+1);
@@ -58,14 +72,29 @@ void cd(char *args[]) {
     else {
         strcpy(newpath, path);
         strcat(newpath, "/");
-        strcat(newpath, args[1]);
+        strcat(newpath, dir);
     }
 
     //For debugging
     // printf("Go here : %s\n", newpath);
 
-    chdir(newpath);
-    getcwd(path, 100);
+    int err = chdir(newpath);
+    if(err) {
+        fprintf(stderr, "cd: error: %s\n", strerror(errno));
+        return;
+    }
+
+    if(args[2] != NULL) {
+        if(!strcmp(args[1], "-P") || !strcmp(args[1], "---physical")) {
+            getcwd(path, 100);
+        }
+        else if(!strcmp(args[1], "-L") || !strcmp(args[1], "---logical")) {
+            strcpy(path, newpath);
+        }
+        return;
+    }
+
+    strcpy(path, newpath);
 }
 
 void history(char *args[]) {
