@@ -466,6 +466,9 @@ int main(int argc, char *argv[]) {
         else if(!strcmp(args[0], "date")) {
             external_command(args);
         }
+        else {
+            fprintf(stderr, "Unrecognized Command!\n");
+        }
 
         free(args);
     }
