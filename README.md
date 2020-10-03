@@ -1,4 +1,4 @@
-# CSE212 : Operating Systems
+# CSE231 : Operating Systems
 
 This repository contains all my codes for CSE231 - Operating Systems Course in Monsoon 2020 at IIITD.
 
