@@ -114,28 +114,33 @@ index 2d95dc3f4..4c27b1497 100644
  }
 +
 diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
-index 1a68a0536..4dc1fb039 100644
+index 1a68a0536..62430f5c1 100644
 --- a/kernel/sched/fair.c
 +++ b/kernel/sched/fair.c
-@@ -534,6 +534,17 @@ static inline u64 min_vruntime(u64 min_vruntime, u64 vruntime)
+@@ -534,6 +534,22 @@ static inline u64 min_vruntime(u64 min_vruntime, u64 vruntime)
  static inline int entity_before(struct sched_entity *a,
  				struct sched_entity *b)
  {
 +
 +	/*
-+	 * If softruntime of a is greater, return 1 
-+	 * else if softruntime of b is greater, return 0
++	 * If softruntime diff is non zero, decide on the basis of softruntime
 +	 * else leave upto old kernel to decide on the basis of vruntime
 +	 */
 +	s64 softruntimediff = (a->softruntime - b->softruntime);
 +	if(softruntimediff != 0) {
++		/* When either of them is zero, choose the other one */
++		if(a->softruntime == 0)
++			return 0;
++		else if(b->softruntime == 0)
++			return 1;
++
 +		return softruntimediff > 0;
 +	}
 +
  	return (s64)(a->vruntime - b->vruntime) < 0;
  }
  
-@@ -871,6 +882,15 @@ static void update_curr(struct cfs_rq *cfs_rq)
+@@ -871,6 +887,15 @@ static void update_curr(struct cfs_rq *cfs_rq)
  		account_group_exec_runtime(curtask, delta_exec);
  	}
  
@@ -151,32 +156,33 @@ index 1a68a0536..4dc1fb039 100644
  	account_cfs_rq_runtime(cfs_rq, delta_exec);
  }
  
-@@ -6844,6 +6864,24 @@ wakeup_preempt_entity(struct sched_entity *curr, struct sched_entity *se)
+@@ -6844,6 +6869,25 @@ wakeup_preempt_entity(struct sched_entity *curr, struct sched_entity *se)
  {
  	s64 gran, vdiff = curr->vruntime - se->vruntime;
  
 +	/*
 +	 * This function decides if sched_entity se should preempt curr
 +	 * We first check if se has some softruntime requirements
-+	 *   -> If yes, prempty
++	 *   -> If yes, prempt on the basis of softruntime
 +	 *   -> If no, then decide according to vruntime
 +	 */
 +	
 +	/* Caclulate the difference between softruntime of two tasks */
 +	s64 softruntimediff = curr->softruntime - se->softruntime;
 +
-+	/* Decide if we have to preempt, according to softruntime requirements */
-+	if(softruntimediff > 0)
-+		/* curr has higher softruntime requirement, don't preempt */
-+		return -1;
-+	else if(softruntimediff < 0)
-+		/* se has higher softruntime requirement, preempt */
-+		return 1;
++	if(softruntimediff != 0) {
++		if(curr->softruntime == 0)
++			return 1;
++		if(se->softruntime == 0)
++			return -1;
++
++		return softruntimediff < 0;
++	}
 +
  	if (vdiff <= 0)
  		return -1;
  
-@@ -11317,3 +11355,4 @@ int sched_trace_rq_nr_running(struct rq *rq)
+@@ -11317,3 +11361,4 @@ int sched_trace_rq_nr_running(struct rq *rq)
          return rq ? rq->nr_running : -1;
  }
  EXPORT_SYMBOL_GPL(sched_trace_rq_nr_running);

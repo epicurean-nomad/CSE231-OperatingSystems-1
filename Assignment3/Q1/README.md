@@ -15,7 +15,7 @@ requirement for a given process, identified with it's `pid`.
 
 2. To initialize the variable defined in Step 1, we modify the file `kernel/sched/core.c`. We initialize the variable in `__sched_fork` function, where other variable of `struct sched_entity` are initialized.
 
-3. We now modify the function `entity_before` in the file `kernel/sched/fair.c`. Here, we are deciding which process whould be scheduled first. We add the criteria of `softruntime`. If some process has higher `softruntime`, it'll be scheduled first. If there's a tie, it would be resolved using `vruntime`.
+3. We now modify the function `entity_before` in the file `kernel/sched/fair.c`. Here, we are deciding which process whould be scheduled first. We add the criteria of `softruntime`. If some process has lower `softruntime`, it'll be scheduled first. If one has zero, and the other process has positive `softruntime`, then we schedule the process with `softruntime` requirement first. If there's a tie, it would be resolved using `vruntime`.
 
 4. Now each time the process is preempted by another process, we have to ensure that we reduce the `softrutime` variable. So, in the function `update_curr` in the same file, where `vruntime` is updated after process is preempted, I update `softruntime` too.
 
