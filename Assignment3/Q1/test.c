@@ -15,7 +15,7 @@ long rtnice(long pid, long long softruntime) {
 }
 
 void busy_wait() {
-	for(long i=0; i<9999999999; ++i);
+	for(long long i=0; i<9999999999L; ++i);
 }
 
 void fork_and_test(long long softruntime) {
@@ -47,8 +47,8 @@ void fork_and_test(long long softruntime) {
 	}
 	else {
 		wait(NULL);
-		clock_t t = clock();
 		printf("\nRunning without realtime requirements\n");
+		clock_t t = clock();
 
 		busy_wait();
 

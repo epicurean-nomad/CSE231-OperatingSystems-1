@@ -43,7 +43,7 @@ Ideally, the one with soft realtime requirements should elapse less time. We obs
 ## Instructions to Run the Test
 
 ```sh
-make
+make run
 ````
 
 This will automatically compile and run the program for you. It will ask for `softruntime` value. Enter value in nanoseconds. Press enter.
