@@ -47,3 +47,8 @@ make run
 ````
 
 This will automatically compile and run the program for you. It will ask for `softruntime` value. Enter value in nanoseconds. Press enter.
+
+## Screenshot
+
+![Demo Screeenshot](https://user-images.githubusercontent.com/55682057/98943842-25e1df00-2516-11eb-8dc7-52ad4e2dbf6b.jpg)
+

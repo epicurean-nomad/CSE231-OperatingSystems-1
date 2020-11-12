@@ -134,7 +134,7 @@ index 1a68a0536..62430f5c1 100644
 +		else if(b->softruntime == 0)
 +			return 1;
 +
-+		return softruntimediff > 0;
++		return softruntimediff < 0;
 +	}
 +
  	return (s64)(a->vruntime - b->vruntime) < 0;
@@ -172,7 +172,7 @@ index 1a68a0536..62430f5c1 100644
 +
 +	if(softruntimediff != 0) {
 +		if(curr->softruntime == 0)
-+			return 1;
++			return 0;
 +		if(se->softruntime == 0)
 +			return -1;
 +
