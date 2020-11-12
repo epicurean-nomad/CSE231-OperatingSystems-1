@@ -48,6 +48,21 @@ make run
 
 This will automatically compile and run the program for you. It will ask for `softruntime` value. Enter value in nanoseconds. Press enter.
 
+### Ouput and Observations
+
+We observe that even though both the processes do the same amount of work, ie, do a `busy_wait()`, we observe that mostly the one with `softrealtime` requirements finshes sooner than the process without it.
+
+This indicates that the process with `softrealtime` requirements is scheduled more often.
+
+## Error Handling
+
+- **Invalid Process ID** : If the process ID passed invalid, it returns ***EINVAL***. `errno` is set accordingly.
+
+
+- **Invalid `softruntime` value** : If the softruntime requirement passed by the caller is negative, it returns ***EINVAL***. `errno` is set accordingly.
+
+These errors could be printed using `perror()` in the caller program.
+
 ## Screenshot
 
 ![Demo Screeenshot](https://user-images.githubusercontent.com/55682057/98943842-25e1df00-2516-11eb-8dc7-52ad4e2dbf6b.jpg)
