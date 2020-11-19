@@ -7,87 +7,90 @@
 #include <semaphore.h>
 #include <unistd.h>
 #include <wait.h>
+#include <sys/ipc.h>
+#include <pthread.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
 
-#define smem_bak1 "/hadron4"
-#define smem_bak2 "/hadron3"
-#define sema_name "sema43"
+#define sema_name1 "sema4"
+#define sema_name2 "sema3"
 #define smem_size 500
 
-void check_error(int return_val, char *msg) {
-	if(return_val < 0) {
-		perror(msg);
-		exit(return_val);
-	}
-}
+int shmid1, shmid2;
+char *shm1, *shm2;
 
-void check_null(void *ptr, char *msg) {
-	if(ptr == NULL) {
-		perror(msg);
-		exit(-1);
-	}
+void check_error(char *msg) {
+	perror(msg);
+	exit(EXIT_FAILURE);
 }
 
 int main(void) {
 	pid_t pid;
 	pid = fork();
-	check_error(pid, "fork");
+	if(pid < 0)
+		check_error("fork");
 
-	// Open shared memory
-	int fd1 = shm_open(smem_bak1, O_RDWR | O_CREAT, 0644);
-	check_error(fd1, "shm_open");
-	int fd2 = shm_open(smem_bak2, O_RDWR | O_CREAT, 0644);
-	check_error(fd2, "shm_open");
-
-	// Map the memory
-	caddr_t mem_ptr1 = mmap(NULL, smem_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd1, 0);
-	check_null(mem_ptr1, "mmap");
-	caddr_t mem_ptr2 = mmap(NULL, 4, PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0);
-	check_null(mem_ptr2, "mmap");
-
-	// Open a named Semaphore
-	sem_t* sem_ptr = sem_open(sema_name, O_CREAT, 0644, 1);
-	check_null(sem_ptr, "sem_open");
+	sem_t *sem1 = sem_open(sema_name1, O_CREAT, 0644, 1);
+	if(sem1 == SEM_FAILED)
+		check_error("sem_open");
 	
-	printf("Check1\n");
+	sem_t *sem2 = sem_open(sema_name2, O_CREAT, 0644, 1);
+	if(sem2 == SEM_FAILED)
+		check_error("sem_open");
 
-	sem_wait(sem_ptr);
-	printf("Check2\n");
-	if(*((char *)mem_ptr1) != '\0' || *((int *)mem_ptr2) != 0){
-		memset(mem_ptr1, 0, smem_size);
-		memset(mem_ptr2, 0, 4);
-	}
-	sem_post(sem_ptr);
+	shmid1 = shmget(2009, smem_size, 0666 | IPC_CREAT);
+	if(shmid1 == -1)
+		check_error("shmget");
+	shm1 = shmat(shmid1, 0, 0);
+	if(shm1 == (void *)-1)
+		check_error("shmget");
 
-	for(int i=1; i<=5; ++i) {
+	shmid2 = shmget(2010, 4, 0666 | IPC_CREAT);
+	if(shmid2 == -1)
+		check_error("shmget");
+	shm2 = shmat(shmid2, 0, 0);
+	if(shm2 == (void *)-1)
+		check_error("shmget");
+
+	for(int i=0; i<5; ++i) {
 		if(pid == 0) {
-			// Child Process
-			sem_wait(sem_ptr);
-			printf("Child read%d-> %s; %d\n", i, (char *)mem_ptr1, *((int *)mem_ptr2));
-			sprintf(mem_ptr1, "Msg%d from Child", i);
-			
-			// Release the lock on semaphore
-			sem_post(sem_ptr);
+			// Child Proess
+			sem_wait(sem1);	
+			printf("Child reads: %s;", (char *)shm1);
+			sprintf(shm1, "Child writes %d", i);
+			sem_post(sem1);
+
+			sem_wait(sem2);
+			printf("%d\n", *((int *)shm2));
+			int *int_ptr = (int *)shm2;
+			*int_ptr = i;
+			sem_post(sem2);
 		}
 		else {
 			// Parent Process
-			sem_wait(sem_ptr);
-			printf("Parent read%d-> %s; %d\n", i, (char *)mem_ptr1, *((int *)mem_ptr2));
-			sprintf(mem_ptr1, "Msg%d from Parent", i);
-			
-			// Release the lock on semaphore
-			sem_post(sem_ptr);
+			sem_wait(sem1);	
+			printf("Parent reads: %s;", (char *)shm1);
+			sprintf(shm1, "Child writes %d", i);
+			sem_post(sem1);
+
+			sem_wait(sem2);
+			printf("%d\n", *((int *)shm2));
+			int *int_ptr = (int *)shm2;
+			*int_ptr = i;
+			sem_post(sem2);
 		}
 	}
 
-	// Cleanup
-	munmap(mem_ptr1, smem_size);
-	munmap(mem_ptr2, 4);
-	close(fd1);
-	close(fd2);
-	sem_close(sem_ptr);
+	sem_destroy(sem1);
+	sem_destroy(sem2);
 
-	if(pid == 0) {
+	shmdt(shm1);
+	shmctl(shmid1, IPC_RMID, NULL);
+	shmdt(shm1);
+	shmctl(shmid1, IPC_RMID, NULL);
+
+	if(pid == 0)
 		exit(0);
-	}
 	wait(NULL);
+	return 0;
 }

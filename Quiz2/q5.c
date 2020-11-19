@@ -15,41 +15,46 @@ char *shm;
 sem_t rw_mutex, mutex;
 
 void* reader_thread(void* arg) {
-	//wait
-	sem_wait(&mutex);
-	read_count++;
-	if(read_count == 1)
-		sem_wait(&rw_mutex);
-	
-	sem_post(&mutex);
+	// Perform 5 reads
+	for(int i=0; i<5; ++i) {
+		//wait
+		sem_wait(&mutex);
+		read_count++;
+		if(read_count == 1)
+			sem_wait(&rw_mutex);
+		
+		sem_post(&mutex);
 
-	printf("Reader starts reading...\n");
+		printf("Reader starts reading...\n");
 
-	//critical section
-	printf("Reader reads <%s>\n", shm);
-	//End of critical section
+		//critical section
+		printf("Reader reads <%s>\n", shm);
+		//End of critical section
 
-	printf("Reader ends reading...\n");
+		printf("Reader ends reading...\n");
 
-	sem_wait(&mutex);
-	read_count--;
-	if(read_count == 0)
-		sem_post(&rw_mutex);
-	sem_post(&mutex);
+		sem_wait(&mutex);
+		read_count--;
+		if(read_count == 0)
+			sem_post(&rw_mutex);
+		sem_post(&mutex);
+	}
 
 	pthread_exit(NULL);
 }
 
 void* writer_thread(void* arg) {
-	//wait
-	sem_wait(&rw_mutex);
-	printf("Writer started writing..\n");
+	// Perform 5 writes
+	for(int i=0; i<5; ++i) {
+		//wait
+		sem_wait(&rw_mutex);
+		printf("Writer started writing..\n");
 
-	sprintf(shm, "W%d", ++cnt);
-	
-	printf("Writer Finished writing...\n");
-	sem_post(&rw_mutex);
-
+		sprintf(shm, "W%d", ++cnt);
+		
+		printf("Writer Finished writing...\n");
+		sem_post(&rw_mutex);
+	}
 	pthread_exit(NULL);
 }
 
