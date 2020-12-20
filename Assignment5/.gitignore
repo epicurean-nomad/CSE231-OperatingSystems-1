@@ -1,0 +1,5 @@
+*.pdf
+*.zip
+!problemStatement.pdf
+Q1/boot.bin
+Q2/editor
